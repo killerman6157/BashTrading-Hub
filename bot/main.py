@@ -1,38 +1,49 @@
-bot/main.py
+import logging
+from fastapi import FastAPI, Request, HTTPException
+import uvicorn
 
-import logging from fastapi import FastAPI, Request, HTTPException from telegram import Bot from telegram.constants import ParseMode from config import BOT_TOKEN, WEBHOOK_SECRET, SIGNAL_CHANNEL_ID import uvicorn
+# Import settings daga config.py
+from config import BOT_TOKEN, WEBHOOK_SECRET
 
-bot = Bot(token=BOT_TOKEN) app = FastAPI()
+# Import webhook_entry daga handlers
+# KA LURA: webhook_entry yanzu baya buƙatar `update` ko `context`.
+# Zai karbi data kai tsaye daga FastAPI webhook.
+from handlers.webhook import process_webhook_data # An canza sunan function don karin fayyace
 
-logging.basicConfig(level=logging.INFO) logger = logging.getLogger(name)
+# Saita FastAPI App
+app = FastAPI()
 
-@app.post("/webhook/{secret_key}") async def webhook_handler(secret_key: str, request: Request): if secret_key != WEBHOOK_SECRET: raise HTTPException(status_code=403, detail="Unauthorized webhook")
+# Saita Logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__) # An gyara zuwa __name__
 
-data = await request.json()
-logger.info(f"📥 Received Webhook Data: {data}")
+@app.post("/webhook/{secret_key}")
+async def webhook_handler(secret_key: str, request: Request):
+    """
+    Mai karɓar webhook wanda ke kira wani function don sarrafa bayanai.
+    """
+    # Duba sirrin key
+    if secret_key != WEBHOOK_SECRET:
+        logger.warning(f"⚠️ Unauthorized webhook attempt with key: {secret_key}")
+        raise HTTPException(status_code=403, detail="Unauthorized webhook")
 
-try:
-    symbol = data.get("symbol") or data.get("ticker")
-    entry = data.get("entry") or data.get("price")
-    tp = data.get("tp") or data.get("take_profit")
-    sl = data.get("sl") or data.get("stop_loss")
-    signal_type = data.get("type") or "Signal"
+    try:
+        data = await request.json()
+        logger.info(f"📥 Received Webhook Data in main.py: {data}")
 
-    message = (
-        f"📡 *{signal_type.upper()} Signal*
+        # Kira function din da ke sarrafa webhook data a handlers/webhook.py
+        # Zamu tura masa data da muke samu daga request.
+        result = await process_webhook_data(data)
+        
+        logger.info(f"✅ Webhook data processed by handler: {result.get('message', 'No message')}")
+        return {"status": "success", "message": result.get("message", "Data processed.")}
 
-" f"Pair: {symbol} " f"Entry: {entry} " f"TP: {tp} " f"SL: {sl}" )
+    except Exception as e:
+        logger.error(f"❌ Error in main.py webhook handler: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Server error: {e}")
 
-await bot.send_message(
-        chat_id=SIGNAL_CHANNEL_ID,
-        text=message,
-        parse_mode=ParseMode.MARKDOWN
-    )
-    return {"status": "success"}
-
-except Exception as e:
-    logger.error(f"❌ Error: {e}")
-    raise HTTPException(status_code=500, detail="Server error")
-
-if name == "main": uvicorn.run("bot.main:app", host="0.0.0.0", port=8000, reload=True)
+# Yadda za a tashi da FastAPI app
+if __name__ == "__main__":
+    logger.info("🚀 Starting FastAPI application...")
+    uvicorn.run("bot.main:app", host="0.0.0.0", port=8000, reload=True)
 
