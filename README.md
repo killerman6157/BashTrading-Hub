@@ -1,81 +1,105 @@
-📱 Yadda Ake Deploy Bot Din a Termux
+📱 BashTrading-Hub Smart Money Entry Bot
 
-Bot ɗin BashTrading-Hub yana iya aiki kai tsaye a cikin Termux, wanda ke ba da damar gudanar da Telegram bot ɗin smart money strategy daga waya ba tare da VPS ko PC ba.
+BashTrading-Hub bot yana karɓar sakonni daga TradingView webhook sannan yana duba ko signal ɗin ya cika sharuddan Smart Money Concept (SMC). Idan ya dace, bot ɗin zai tura signal kai tsaye zuwa Telegram Channel/Group.
 
-✅ Abubuwan da ake bukata
 
-Python 3
+---
 
-pip
+🔧 Abubuwan da Bot ɗin ke Kunsha
 
-git
+✅ Webhook Handler – Yana karɓar signal daga TradingView.
 
-(zabi) ngrok idan zaka yi amfani da webhook
+✅ SMC Strategy Filter – Duba BOS, FVG, OB da sauran sharudda kafin aika signal.
+
+✅ Auto Scanner – Zabi token ko coin mafi kyau da ya fi cancanta da yanayin kasuwa.
+
+✅ Telegram Integration – Tura sakonni zuwa Channel ko Group.
+
+✅ Modular Structure – handlers/, strategies/, scanner/, config.py, main.py
 
 
 
 ---
 
-🛠️ Matakan Shigarwa
+🛠️ Installation & Setup
 
-1. Sabunta Termux da shigar da Python da Git
-
-pkg update && pkg upgrade
-pkg install python git
-pip install --upgrade pip
-
-2. Clone GitHub repo
+1. Clone Repo
 
 git clone https://github.com/killerman6157/BashTrading-Hub.git
 cd BashTrading-Hub
 
-3. Install dependencies
+2. Install Requirements
 
 pip install -r requirements.txt
 
-4. Kirkiri .env file
+3. Create .env File
 
-cp .env.example .env
+nano .env
 
-Sannan ka gyara .env ka saka bayanan ka:
+Sai ka saka:
 
-BOT_TOKEN=your_telegram_bot_token
-TRADINGVIEW_WEBHOOK_SECRET=secure_password
-ADMIN_ID=6281246656
+BOT_TOKEN=YOUR_TELEGRAM_BOT_TOKEN
+WEBHOOK_SECRET=YOUR_SECRET_KEY
+TELEGRAM_CHAT_ID=YOUR_CHANNEL_OR_GROUP_ID
 
-5. Run the bot
-
-python main.py
-
-
----
-
-🌐 (ZABI) Idan Kana son Webhook ta TradingView
-
-6. Install ngrok
-
-pkg install wget unzip
-wget https://bin.equinox.io/c/bNyj1mQVY4c/ngrok-stable-linux-arm.zip
-unzip ngrok-stable-linux-arm.zip
-./ngrok authtoken YOUR_NGROK_AUTH_TOKEN
-
-7. Run ngrok
-
-./ngrok http 8000
-
-8. Set Webhook a TradingView
-
-Je zuwa TradingView alerts
-
-Webhook URL ɗinka zai kasance kamar haka:
+> 💡 BOT_TOKEN daga @BotFather
+💡 TELEGRAM_CHAT_ID = -100xxxxxxxxxx for channels/groups
+💡 WEBHOOK_SECRET ana amfani da shi don tabbatar da webhook ɗin da TradingView ke aiko wa.
 
 
-https://xxxxx.ngrok.io/webhook/your-secret
 
 
 ---
 
-🔁 Zaka Iya Sake Gudanar da Bot:
+🧪 How to Test Locally
 
-cd BashTrading-Hub
 python main.py
+
+Zaka iya amfani da Ngrok ko LocalTunnel don buɗe webhook ɗinka:
+
+ngrok http 8000
+
+Sai ka sa webhook URL ɗinka a TradingView kamar haka:
+
+https://YOUR_NGROK_URL/webhook?secret=YOUR_SECRET_KEY
+
+
+---
+
+📤 Format na Webhook Message daga TradingView
+
+{
+  "symbol": "BTCUSDT",
+  "price": 28500,
+  "direction": "BUY",
+  "bos": true,
+  "ob": true,
+  "fvg": true,
+  "timeframe": "15m"
+}
+
+
+---
+
+📎 Abubuwan Da Bot Din Ke Aiki Da Su
+
+strategies/smc.py – Smart Money Concept logic
+
+scanner/auto_select.py – Zabi token/coin mafi kyau
+
+handlers/webhook_handler.py – Karɓar sakonni daga webhook
+
+bot/main.py – Entry point na bot
+
+config.py – Cikakken settings da environment variables
+
+
+
+---
+
+📦 requirements.txt
+
+python-telegram-bot==20.8
+aiohttp==3.9.5
+requests==2.31.0
+python-dotenv==1.0.1
